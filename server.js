@@ -36,20 +36,26 @@ async function sendOrderToDiscord(orderData) {
                     name: 'Email',
                     value: orderData.customerInfo.email,
                     inline: true
-                },
-                {
-                    name: 'Shipping Address',
-                    value: orderData.customerInfo.address,
-                    inline: false
-                },
-                {
-                    name: 'Total Amount',
-                    value: `$${orderData.total.toFixed(2)}`,
-                    inline: true
                 }
             ],
             timestamp: new Date().toISOString()
         };
+
+        // Add shipping address if provided
+        if (orderData.customerInfo.address) {
+            embed.fields.push({
+                name: 'Shipping Address',
+                value: orderData.customerInfo.address,
+                inline: false
+            });
+        }
+
+        // Add total amount
+        embed.fields.push({
+            name: 'Total Amount',
+            value: `$${orderData.total.toFixed(2)}`,
+            inline: true
+        });
 
         // Add order items to the embed
         const itemsField = {
