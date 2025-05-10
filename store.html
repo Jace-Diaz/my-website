@@ -363,6 +363,12 @@
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartCount();
         }
+
+        console.log('window.products:', window.products);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProducts();
+        });
     </script>
 </body>
 </html> 
