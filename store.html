@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store - Zentic</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body class="bg-black">
+    <!-- Navigation -->
+    <nav class="bg-gray-900 bg-opacity-95 shadow-lg fixed w-full z-50 top-0 left-0">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <a href="/" class="flex items-center space-x-2">
+                    <img src="images/logo.png" alt="Zentic Logo" class="h-12 w-12 rounded-full border-2 border-blue-500 shadow-lg bg-gray-800 p-1">
+                    <span class="text-2xl font-bold text-blue-400 tracking-wide hidden sm:inline">Zentic</span>
+                </a>
+                <!-- Navigation Links -->
+                <div class="flex items-center space-x-8">
+                    <a href="store.html" class="text-gray-200 hover:text-blue-400 text-lg font-semibold transition">Store</a>
+                    <a href="socials.html" class="text-gray-200 hover:text-blue-400 text-lg font-semibold transition">Socials</a>
+                    <a href="cart.html" class="relative flex items-center group">
+                        <svg class="h-7 w-7 text-gray-200 group-hover:text-blue-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <span class="absolute -top-1 -right-2 text-xs text-blue-400 font-bold cart-count">0</span>
+                    </a>
+                    <a href="account.html" class="flex items-center group">
+                        <svg class="h-7 w-7 text-gray-200 group-hover:text-blue-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="h-20"></div>
+
+    <!-- Products Grid -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex items-center justify-between mb-8">
+            <h1 class="text-3xl font-bold text-white">All Products</h1>
+            <a href="/" class="text-blue-500 hover:text-blue-300">Back to Home</a>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="products-grid">
+            <!-- Products will be loaded here dynamically -->
+        </div>
+    </div>
+
+    <!-- Product Details Modal -->
+    <div id="product-modal" class="fixed inset-0 bg-black bg-opacity-80 hidden overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-gray-900">
+            <div class="mt-3">
+                <div class="flex justify-between items-start">
+                    <h3 id="modal-product-name" class="text-lg font-medium text-white"></h3>
+                    <button onclick="closeProductModal()" class="text-gray-400 hover:text-blue-500" aria-label="Close">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="mt-4">
+                    <div class="h-48 bg-gray-800 rounded-md mb-4 flex items-center justify-center">
+                        <!-- Product image will be added here -->
+                    </div>
+                    <p id="modal-product-description" class="text-gray-300 mb-4"></p>
+                    <div class="flex justify-between items-center mb-4">
+                        <p id="modal-product-price" class="text-xl font-semibold text-blue-400"></p>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="decrementQuantity()" class="text-gray-400 hover:text-blue-500" aria-label="Decrease quantity">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                </svg>
+                            </button>
+                            <span id="modal-quantity" class="text-white">1</span>
+                            <button onclick="incrementQuantity()" class="text-gray-400 hover:text-blue-500" aria-label="Increase quantity">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <button onclick="addToCartFromModal()" 
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors duration-300">
+                        Add to Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" class="fixed inset-0 bg-black bg-opacity-80 hidden overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-gray-900">
+            <div class="mt-3">
+                <h3 class="text-lg font-medium text-white mb-4">Complete Your Order</h3>
+                <form id="checkout-form" class="space-y-4">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-300">Full Name</label>
+                        <input type="text" id="name" name="name" required
+                            class="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-300">Email</label>
+                        <input type="email" id="email" name="email" required
+                            class="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label for="address" class="block text-sm font-medium text-gray-300">Shipping Address</label>
+                        <textarea id="address" name="address" required
+                            class="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeCheckoutModal()"
+                            class="px-4 py-2 bg-gray-700 text-gray-200 rounded-md hover:bg-gray-600">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            Place Order
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Confirmation Modal -->
+    <div id="order-confirmation" class="fixed inset-0 bg-black bg-opacity-80 hidden overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-gray-900">
+            <div class="mt-3 text-center">
+                <h3 class="text-lg font-medium text-white mb-4">Order Confirmed!</h3>
+                <p class="text-gray-300 mb-2">Your order has been placed successfully.</p>
+                <p class="text-gray-300 mb-4">Order Code: <span id="order-code" class="font-bold text-blue-400"></span></p>
+                <button onclick="closeOrderConfirmation()"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white mt-12">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-center space-x-6">
+                <a href="#" class="text-blue-400 hover:text-white">
+                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"></path>
+                    </svg>
+                </a>
+                <a href="#" class="text-blue-400 hover:text-white">
+                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path>
+                    </svg>
+                </a>
+                <a href="#" class="text-blue-400 hover:text-white">
+                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z"></path>
+                    </svg>
+                </a>
+            </div>
+            <div class="mt-8 text-center text-gray-400">
+                <p>&copy; 2024 Zentic. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Product data with descriptions
+        const products = {
+            chains: [
+                { 
+                    id: 1, 
+                    name: 'Custom Chain 1', 
+                    price: 99.99, 
+                    description: 'This purchase will grant you 1 custom chain with 1 pendant this could be text or a pendant. MAKE A TICKET FOR MORE INFO BEFORE PURCHASING.'
+                },
+                { 
+                    id: 2, 
+                    name: 'Custom Chain 2', 
+                    price: 149.99, 
+                    description: 'This purchase will grant you 1 custom chain with 2 pendant this could be text or a pendant. MAKE A TICKET FOR MORE INFO BEFORE PURCHASING.'
+                },
+                { 
+                    id: 3, 
+                    name: 'Custom Chain 3', 
+                    price: 199.99, 
+                    description: 'This purchase will grant you 1 custom chain with 3 pendant this could be text or a pendant. MAKE A TICKET FOR MORE INFO BEFORE PURCHASING.'
+                },
+            ],
+            clothing: [
+                { 
+                    id: 1, 
+                    name: 'Custom Clothing 1', 
+                    price: 79.99, 
+                    description: 'This will grant you 1 custom clothing item that you want. MAKE A TICKET FOR MORE INFO BEFORE PURCHASING.'
+                },
+                { 
+                    id: 2, 
+                    name: 'Custom Clothing 2', 
+                    price: 129.99, 
+                    description: 'This will grant you 2 custom clothing items that you want. MAKE A TICKET FOR MORE INFO BEFORE PURCHASING.'
+                },
+                { 
+                    id: 3, 
+                    name: 'Custom Clothing 3', 
+                    price: 179.99, 
+                    description: 'This will grant you 3 custom clothing items that you want. MAKE A TICKET FOR MORE INFO BEFORE PURCHASING.'
+                },
+                { 
+                    id: 4, 
+                    name: 'Custom Clothing Package', 
+                    price: 179.99, 
+                    description: 'This will grant you 5-10 custom clothing items that you want. MAKE A TICKET FOR MORE INFO BEFORE PURCHASING.'
+                },
+                { 
+                    id: 5, 
+                    name: 'Customs gang package', 
+                    price: 179.99, 
+                    description: 'This will grant you 1X custom pants 1X custom shirt 1X custom mask 1X custom flag and 1X custom chain. MAKE A TICKET FOR MORE INFO BEFORE PURCHASING.'
+                },
+            ],
+            gfx: [
+                { 
+                    id: 1, 
+                    name: 'Custom gfx', 
+                    price: 59.99, 
+                    description: 'Will create any gfx you need. MAKE A TICKET FOR MORE INFO BEFORE PURCHASING.'
+                },
+                { 
+                    id: 2, 
+                    name: 'Make any logo spin', 
+                    price: 89.99, 
+                    description: 'Will make any logo spin. MAKE A TICKET FOR MORE INFO BEFORE PURCHASING.'
+                },
+                { 
+                    id: 3, 
+                    name: 'Gfx package', 
+                    price: 119.99, 
+                    description: 'This package will recive you 2 Logos 1 spin and 1 without spin a banner with any sizing you want. MAKE A TICKET FOR MORE INFO BEFORE PURCHASING.'
+                },
+            ],
+            cars: [
+                { 
+                    id: 1, 
+                    name: 'Full customs car project', 
+                    price: 299.99, 
+                    description: 'This purchase will grant you a customized vehicle with anything you want on it aslo as we sell it on our website. MAKE A TICKET FOR MORE INFO BEFORE PURCHASING.'
+                },
+                { 
+                    id: 2, 
+                    name: 'Custom prop 1', 
+                    price: 349.99, 
+                    description: 'this purchase recive you 3 custom props added to any car you send us. MAKE A TICKET FOR MORE INFO BEFORE PURCHASING.'
+                },
+                { 
+                    id: 3, 
+                    name: 'Custom prop 2', 
+                    price: 399.99, 
+                    description: 'this purchase recive you 5 custom props added to any car you send us. MAKE A TICKET FOR MORE INFO BEFORE PURCHASING.'
+                },
+                { 
+                    id: 4, 
+                    name: 'Debadging', 
+                    price: 49.99, 
+                    description: 'this purchase will allow you to send in 1 vehicle to be debaged by us. MAKE A TICKET FOR MORE INFO BEFORE PURCHASING.'
+                },
+                { 
+                    id: 5, 
+                    name: 'Customs plate', 
+                    price: 49.99, 
+                    description: 'this purchase will grant you a custom plate saying what ever you want on it. MAKE A TICKET FOR MORE INFO BEFORE PURCHASING.'
+                },
+            ]
+        };
+        
+
+        let currentProduct = null;
+        let currentQuantity = 1;
+
+        // Helper to get URL parameter
+        function getCategoryFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('category');
+        }
+
+        // Load products for a specific category or all
+        function loadProducts() {
+            const category = getCategoryFromURL();
+            const productsGrid = document.getElementById('products-grid');
+            let productsToShow = [];
+
+            if (category && products[category]) {
+                productsToShow = products[category];
+                // Optionally update the heading
+                document.querySelector('h1').textContent = `${category.charAt(0).toUpperCase() + category.slice(1)} Collection`;
+            } else {
+                // Show all products from all categories
+                productsToShow = Object.values(products).flat();
+                document.querySelector('h1').textContent = 'All Products';
+            }
+
+            displayProducts(productsToShow);
+        }
+
+        function displayProducts(products) {
+            const productsGrid = document.getElementById('products-grid');
+            productsGrid.innerHTML = products.map(product => `
+                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                    <div class="p-4">
+                        <h3 class="text-lg font-medium text-gray-900 cursor-pointer" onclick="openProductModal(${product.id})">${product.name}</h3>
+                        <p class="mt-1 text-xl font-semibold text-indigo-600">$${product.price.toFixed(2)}</p>
+                        <button onclick="openProductModal(${product.id})" class="mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors duration-300 flex items-center justify-center">Add to Cart</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Product modal functions
+        function openProductModal(productId) {
+            // Search all categories for the product by id
+            currentProduct = Object.values(products).flat().find(p => p.id === productId);
+            currentQuantity = 1;
+            
+            document.getElementById('modal-product-name').textContent = currentProduct.name;
+            document.getElementById('modal-product-description').textContent = currentProduct.description;
+            document.getElementById('modal-product-price').textContent = `$${currentProduct.price.toFixed(2)}`;
+            document.getElementById('modal-quantity').textContent = currentQuantity;
+            
+            document.getElementById('product-modal').classList.remove('hidden');
+        }
+
+        function closeProductModal() {
+            document.getElementById('product-modal').classList.add('hidden');
+            currentProduct = null;
+            currentQuantity = 1;
+        }
+
+        function incrementQuantity() {
+            currentQuantity++;
+            document.getElementById('modal-quantity').textContent = currentQuantity;
+        }
+
+        function decrementQuantity() {
+            if (currentQuantity > 1) {
+                currentQuantity--;
+                document.getElementById('modal-quantity').textContent = currentQuantity;
+            }
+        }
+
+        function addToCartFromModal() {
+            if (currentProduct) {
+                const productToAdd = {
+                    ...currentProduct,
+                    quantity: currentQuantity
+                };
+                addToCart(productToAdd);
+                closeProductModal();
+            }
+        }
+
+        // Checkout functions
+        function openCheckoutModal() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            if (cart.length === 0) {
+                alert('Your cart is empty!');
+                return;
+            }
+            document.getElementById('checkout-modal').classList.remove('hidden');
+        }
+
+        function closeCheckoutModal() {
+            document.getElementById('checkout-modal').classList.add('hidden');
+        }
+
+        function closeOrderConfirmation() {
+            document.getElementById('order-confirmation').classList.add('hidden');
+            // Clear cart after successful order
+            localStorage.setItem('cart', JSON.stringify([]));
+            updateCartCount();
+        }
+
+        // Generate a random order code
+        function generateOrderCode() {
+            const timestamp = Date.now().toString();
+            const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+            return `ORD-${timestamp}-${random}`;
+        }
+
+        // Handle order submission
+        document.getElementById('checkout-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const orderCode = generateOrderCode();
+            const orderData = {
+                orderCode,
+                customerInfo: {
+                    name: document.getElementById('name').value,
+                    email: document.getElementById('email').value,
+                    address: document.getElementById('address').value
+                },
+                items: cart,
+                total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                orderDate: new Date().toISOString()
+            };
+
+            try {
+                // Save order to JSON file
+                const response = await fetch('/api/save-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                if (response.ok) {
+                    // Show order confirmation
+                    document.getElementById('order-code').textContent = orderCode;
+                    document.getElementById('checkout-modal').classList.add('hidden');
+                    document.getElementById('order-confirmation').classList.remove('hidden');
+                } else {
+                    throw new Error('Failed to save order');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('There was an error processing your order. Please try again.');
+            }
+        });
+
+        // Load products when the page loads
+        document.addEventListener('DOMContentLoaded', loadProducts);
+
+        // Add a debug log to addToCart
+        window.addToCart = function(product) {
+            console.log('addToCart called with:', product);
+            const existingItem = cart.find(item => item.id === product.id);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+        }
+    </script>
+</body>
+</html> 

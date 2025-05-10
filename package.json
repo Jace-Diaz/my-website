@@ -1,0 +1,12 @@
+{
+  "name": "zentic-store",
+  "version": "1.0.0",
+  "description": "Zentic Store with Order System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+} 
