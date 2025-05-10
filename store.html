@@ -310,28 +310,31 @@
 
         function displayProducts(products) {
             const productsGrid = document.getElementById('products-grid');
-            productsGrid.innerHTML = products.map(product => `
-                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                    <div class="p-4">
-                        <h3 class="text-lg font-medium text-gray-900 cursor-pointer" onclick="openProductModal(${product.id})">${product.name}</h3>
-                        <p class="mt-1 text-xl font-semibold text-indigo-600">$${product.price.toFixed(2)}</p>
-                        <button onclick="openProductModal(${product.id})" class="mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors duration-300 flex items-center justify-center">Add to Cart</button>
-                    </div>
-                </div>
-            `).join('');
+            let html = '';
+            Object.entries(window.products).forEach(([category, items]) => {
+                items.forEach((product, idx) => {
+                    html += `
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                            <div class="p-4">
+                                <h3 class="text-lg font-medium text-gray-900 cursor-pointer" onclick="openProductModal('${category}',${idx})">${product.name}</h3>
+                                <p class="mt-1 text-xl font-semibold text-indigo-600">$${product.price.toFixed(2)}</p>
+                                <button onclick="openProductModal('${category}',${idx})" class="mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors duration-300 flex items-center justify-center">Add to Cart</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+            productsGrid.innerHTML = html;
         }
 
         // Product modal functions
-        function openProductModal(productId) {
-            // Search all categories for the product by id
-            currentProduct = Object.values(products).flat().find(p => p.id === productId);
+        function openProductModal(category, idx) {
+            currentProduct = window.products[category][idx];
             currentQuantity = 1;
-            
             document.getElementById('modal-product-name').textContent = currentProduct.name;
             document.getElementById('modal-product-description').textContent = currentProduct.description;
             document.getElementById('modal-product-price').textContent = `$${currentProduct.price.toFixed(2)}`;
             document.getElementById('modal-quantity').textContent = currentQuantity;
-            
             document.getElementById('product-modal').classList.remove('hidden');
         }
 
