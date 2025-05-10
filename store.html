@@ -109,6 +109,11 @@
                         <input type="email" id="email" name="email" required
                             class="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     </div>
+                    <div>
+                        <label for="address" class="block text-sm font-medium text-gray-300">Shipping Address</label>
+                        <textarea id="address" name="address" required
+                            class="mt-1 block w-full rounded-md border-gray-700 bg-gray-800 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                    </div>
                     <div class="flex justify-end space-x-3">
                         <button type="button" onclick="closeCheckoutModal()"
                             class="px-4 py-2 bg-gray-700 text-gray-200 rounded-md hover:bg-gray-600">
@@ -386,25 +391,40 @@
             e.preventDefault();
             
             const cart = JSON.parse(localStorage.getItem('cart')) || [];
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
+            const orderCode = generateOrderCode();
+            const orderData = {
+                orderCode,
+                customerInfo: {
+                    name: document.getElementById('name').value,
+                    email: document.getElementById('email').value,
+                    address: document.getElementById('address').value
+                },
+                items: cart,
+                total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                orderDate: new Date().toISOString()
+            };
+
             try {
-                const response = await fetch('/api/create-checkout-session', {
+                // Save order to JSON file
+                const response = await fetch('/api/save-order', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ items: cart, name, email })
+                    body: JSON.stringify(orderData)
                 });
-                const data = await response.json();
-                if (data.id) {
-                    await stripe.redirectToCheckout({ sessionId: data.id });
+
+                if (response.ok) {
+                    // Show order confirmation
+                    document.getElementById('order-code').textContent = orderCode;
+                    document.getElementById('checkout-modal').classList.add('hidden');
+                    document.getElementById('order-confirmation').classList.remove('hidden');
                 } else {
-                    throw new Error('Failed to create Stripe session');
+                    throw new Error('Failed to save order');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('There was an error processing your payment. Please try again.');
+                alert('There was an error processing your order. Please try again.');
             }
         });
 
