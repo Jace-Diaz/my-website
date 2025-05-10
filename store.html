@@ -175,7 +175,7 @@
         const stripe = Stripe('pk_live_51RNJUqG4KabiiyB92e8Xyis9IxPgcLkk0HruI2ROXmrREjuBVOHIiT7CmEKg67bIg3VNrB80k6MOI9tbVFND202K00tM5UhrjR');
 
         // Product data with descriptions
-        window.products = {
+        const products = {
             chains: [
                 { id: 1, name: 'Custom Chain 1', price: 99.99, description: 'This purchase will grant you 1 custom chain with 1 pendant this could be text or a pendant. MAKE A TICKET FOR MORE INFO BEFORE PURCHASING.' },
                 { id: 2, name: 'Custom Chain 2', price: 149.99, description: 'This purchase will grant you 1 custom chain with 2 pendant this could be text or a pendant. MAKE A TICKET FOR MORE INFO BEFORE PURCHASING.' },
@@ -216,31 +216,39 @@
 
         // Load products for a specific category or all
         function loadProducts() {
-            displayProducts();
+            const category = getCategoryFromURL();
+            const productsGrid = document.getElementById('products-grid');
+            let productsToShow = [];
+
+            if (category && products[category]) {
+                productsToShow = products[category];
+                // Optionally update the heading
+                document.querySelector('h1').textContent = `${category.charAt(0).toUpperCase() + category.slice(1)} Collection`;
+            } else {
+                // Show all products from all categories
+                productsToShow = Object.values(products).flat();
+                document.querySelector('h1').textContent = 'All Products';
+            }
+
+            displayProducts(productsToShow);
         }
 
-        function displayProducts() {
+        function displayProducts(products) {
             const productsGrid = document.getElementById('products-grid');
-            let html = '';
-            Object.entries(window.products).forEach(([category, items]) => {
-                items.forEach((product, idx) => {
-                    html += `
-                        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                            <div class="p-4">
-                                <h3 class="text-lg font-medium text-gray-900 cursor-pointer" onclick="openProductModal('${category}',${idx})">${product.name}</h3>
-                                <p class="mt-1 text-xl font-semibold text-indigo-600">$${product.price.toFixed(2)}</p>
-                                <button onclick="openProductModal('${category}',${idx})" class="mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors duration-300 flex items-center justify-center">Add to Cart</button>
-                            </div>
-                        </div>
-                    `;
-                });
-            });
-            productsGrid.innerHTML = html;
+            productsGrid.innerHTML = products.map(product => `
+                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                    <div class="p-4">
+                        <h3 class="text-lg font-medium text-gray-900 cursor-pointer" onclick="openProductModal(${product.id})">${product.name}</h3>
+                        <p class="mt-1 text-xl font-semibold text-indigo-600">$${product.price.toFixed(2)}</p>
+                        <button onclick="openProductModal(${product.id})" class="mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors duration-300 flex items-center justify-center">Add to Cart</button>
+                    </div>
+                </div>
+            `).join('');
         }
 
         // Product modal functions
-        function openProductModal(category, idx) {
-            currentProduct = window.products[category][idx];
+        function openProductModal(id) {
+            currentProduct = products.find(p => p.id === id);
             currentQuantity = 1;
             document.getElementById('modal-product-name').textContent = currentProduct.name;
             document.getElementById('modal-product-description').textContent = currentProduct.description;
@@ -364,7 +372,7 @@
             updateCartCount();
         }
 
-        console.log('window.products:', window.products);
+        console.log('products:', products);
 
         document.addEventListener('DOMContentLoaded', function() {
             loadProducts();
