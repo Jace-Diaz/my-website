@@ -248,7 +248,9 @@
 
         // Product modal functions
         function openProductModal(id) {
-            currentProduct = products.find(p => p.id === id);
+            // Flatten all products into a single array and find by id
+            const allProducts = Object.values(products).flat();
+            currentProduct = allProducts.find(p => p.id === id);
             currentQuantity = 1;
             document.getElementById('modal-product-name').textContent = currentProduct.name;
             document.getElementById('modal-product-description').textContent = currentProduct.description;
