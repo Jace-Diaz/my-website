@@ -291,24 +291,10 @@
 
         // Load products for a specific category or all
         function loadProducts() {
-            const category = getCategoryFromURL();
-            const productsGrid = document.getElementById('products-grid');
-            let productsToShow = [];
-
-            if (category && products[category]) {
-                productsToShow = products[category];
-                // Optionally update the heading
-                document.querySelector('h1').textContent = `${category.charAt(0).toUpperCase() + category.slice(1)} Collection`;
-            } else {
-                // Show all products from all categories
-                productsToShow = Object.values(products).flat();
-                document.querySelector('h1').textContent = 'All Products';
-            }
-
-            displayProducts(productsToShow);
+            displayProducts();
         }
 
-        function displayProducts(products) {
+        function displayProducts() {
             const productsGrid = document.getElementById('products-grid');
             let html = '';
             Object.entries(window.products).forEach(([category, items]) => {
