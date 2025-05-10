@@ -277,6 +277,8 @@
             ]
         };
         
+        // Ensure cart is defined globally
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
         let currentProduct = null;
         let currentQuantity = 1;
